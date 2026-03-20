@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PartPilot &mdash; Know Your Alternates Before You Need Them</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .hero { padding: 48px 0 32px; text-align: center; }
+    .hero-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 14px; background: var(--blue-dim);
+      border: 1px solid rgba(77,142,247,0.2); border-radius: 100px;
+      font-size: 12px; font-weight: 700; color: var(--blue);
+      text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 18px;
+    }
+    .hero h1 {
+      font-size: clamp(24px, 5vw, 48px);
+      font-weight: 800; line-height: 1.15; letter-spacing: -0.5px; margin-bottom: 14px;
+    }
+    .hero h1 em { font-style: normal; color: var(--blue); }
+    .hero .sub {
+      font-size: clamp(15px, 2.5vw, 18px);
+      color: var(--text-2); line-height: 1.6; max-width: 600px; margin: 0 auto;
+    }
+    .features { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .feat {
+      display: flex; align-items: flex-start; gap: 14px; padding: 20px;
+      background: var(--bg-1); border: 1px solid var(--border-1);
+      border-radius: var(--r); transition: all 0.2s;
+    }
+    .feat:hover { border-color: var(--border-2); background: var(--bg-2); }
+    .feat-icon {
+      flex-shrink: 0; width: 42px; height: 42px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .feat-icon.ic-blue { background: var(--blue-dim); color: var(--blue); }
+    .feat-icon.ic-amber { background: var(--amber-dim); color: var(--amber); }
+    .feat-icon.ic-green { background: var(--green-dim); color: var(--green); }
+    .feat h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .feat p { font-size: 14px; color: var(--text-2); line-height: 1.5; }
+    .diff {
+      margin-top: 24px; padding: 20px;
+      background: linear-gradient(135deg, var(--blue-dim), var(--green-dim));
+      border: 1px solid rgba(77,142,247,0.12); border-radius: var(--r); text-align: center;
+    }
+    .diff p { font-size: 15px; color: var(--text-2); line-height: 1.6; }
+    .diff strong { color: var(--text-0); }
+
+    @media (min-width: 640px) { .features { grid-template-columns: 1fr 1fr; } .features .feat:last-child { grid-column: 1 / -1; } }
+    @media (min-width: 768px) { .features { grid-template-columns: repeat(3,1fr); } .features .feat:last-child { grid-column: auto; } .hero { padding: 64px 0 48px; } }
+    @media (min-width: 1024px) { .hero { padding: 80px 0 56px; } .feat { padding: 24px; } .feat h4 { font-size: 16px; } .feat p { font-size: 15px; } .diff p { font-size: 16px; } }
+    @media (min-width: 1400px) { .hero { padding: 100px 0 64px; } .hero h1 { font-size: 52px; } .hero .sub { font-size: 20px; max-width: 680px; } .diff { padding: 28px; } }
+  </style>
+</head>
+<body>
+<div class="page">
+  <nav class="nav">
+    <div class="nav-logo">Part<b>Pilot</b></div>
+    <div class="nav-right">
+      <button class="nav-btn" id="themeBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <div class="tabs">
+    <a href="index.html" class="tab active">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Search
+    </a>
+    <a href="bom-upload.html" class="tab">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      BOM Upload
+    </a>
+  </div>
+
+  <div class="px">
+    <div class="search-wrap anim">
+      <svg class="s-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input class="search-input" id="partSearch" type="text" placeholder="Enter part number &mdash; e.g. TDA2050A, LM358" autocomplete="off" />
+    </div>
+    <p class="search-sub">No signup required. Instant results.</p>
+  </div>
+
+  <div class="px">
+    <div class="hero anim anim-d1">
+      <div class="hero-pill">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Design-Time Intelligence
+      </div>
+      <h1>Know your alternates<br><em>before</em> you need them</h1>
+      <p class="sub">Don't wait for a supply crisis. PartPilot validates second sources at design time so you never get caught with a single-source dependency.</p>
+    </div>
+  </div>
+
+  <div class="px">
+    <div class="features">
+      <div class="feat anim anim-d2">
+        <div class="feat-icon ic-blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <div><h4>Second Source Score</h4><p>See how many pre-validated alternates exist for any part before you commit it to your schematic.</p></div>
+      </div>
+      <div class="feat anim anim-d3">
+        <div class="feat-icon ic-amber"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        <div><h4>Supply Risk Score</h4><p>Not just today's stock &mdash; how vulnerable is this part if supply tightens in 6 months?</p></div>
+      </div>
+      <div class="feat anim anim-d4">
+        <div class="feat-icon ic-green"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div><h4>Real-World Issues</h4><p>Datasheets don't capture production footguns. See community-reported issues before they become your problem.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="px mt-lg anim anim-d5">
+    <button class="btn-primary full" id="checkBtn">Check a Part &rarr;</button>
+  </div>
+
+  <div class="px anim anim-d6">
+    <div class="diff">
+      <p><strong>Octopart tells you what's available today.</strong><br>PartPilot tells you how safe your design is for the future.</p>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+  const searchInput = document.getElementById('partSearch');
+  const checkBtn = document.getElementById('checkBtn');
+  function go() {
+    const v = searchInput.value.trim();
+    if (!v) { searchInput.focus(); return; }
+    window.location.href = 'part-detail.html?part=' + encodeURIComponent(v);
+  }
+  searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+  checkBtn.addEventListener('click', () => { if (!searchInput.value.trim()) searchInput.focus(); else go(); });
+</script>
+</body>
+</html>

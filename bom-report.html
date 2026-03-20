@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PartPilot &mdash; BOM Report</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
+    .sum-card { background: var(--bg-1); border: 1px solid var(--border-1); border-radius: var(--r); padding: 16px; text-align: center; }
+    .sum-card .num { font-family: var(--font-mono); font-size: clamp(24px, 4vw, 36px); font-weight: 700; line-height: 1; }
+    .sum-card .num.blue { color: var(--text-0); } .sum-card .num.red { color: var(--red); } .sum-card .num.green { color: var(--green); }
+    .sum-card .lbl { font-size: 12px; color: var(--text-3); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    .sum-card .lbl svg { vertical-align: -2px; margin-right: 3px; }
+    .tbl-wrap { margin-top: 20px; border: 1px solid var(--border-1); border-radius: var(--r); overflow-x: auto; background: var(--bg-1); }
+    .bom-tbl { width: 100%; border-collapse: collapse; min-width: 700px; }
+    .bom-tbl th { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-3); text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--border-1); background: var(--bg-2); position: sticky; top: 0; white-space: nowrap; }
+    .bom-tbl td { font-size: 14px; padding: 12px 14px; color: var(--text-1); border-bottom: 1px solid rgba(30,42,72,0.4); white-space: nowrap; }
+    .bom-tbl tr:hover td { background: var(--bg-2); }
+    .bom-tbl .pn { font-family: var(--font-mono); font-weight: 600; color: var(--blue); cursor: pointer; }
+    .bom-tbl .pn:hover { text-decoration: underline; }
+    .bom-tbl .qty { font-family: var(--font-mono); text-align: center; }
+    .bom-tbl .stock { font-family: var(--font-mono); }
+    .st { padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .st-active { background: var(--green-dim); color: var(--green); }
+    .st-nrnd { background: var(--red-dim); color: var(--red); }
+    .st-eol { background: var(--amber-dim); color: var(--amber); }
+    .risk-bar-cell { min-width: 120px; }
+    .risk-wrap { display: flex; align-items: center; gap: 8px; }
+    .risk-num { font-family: var(--font-mono); font-size: 14px; font-weight: 700; min-width: 24px; }
+    .risk-num.low { color: var(--green); } .risk-num.med { color: var(--amber); } .risk-num.high { color: var(--red); }
+    .risk-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--border-1); overflow: hidden; }
+    .risk-fill { height: 100%; border-radius: 3px; }
+    .risk-fill.low { background: var(--green); } .risk-fill.med { background: var(--amber); } .risk-fill.high { background: var(--red); }
+    .alt-ok { color: var(--green); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .alt-none { color: var(--text-3); display: flex; align-items: center; justify-content: center; }
+    .actions { display: flex; align-items: center; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+    @media (min-width: 768px) { .summary { gap: 16px; } .sum-card { padding: 20px; } }
+    @media (min-width: 1024px) { .summary { gap: 20px; } .sum-card { padding: 24px; } .sum-card .num { font-size: 40px; } }
+  </style>
+</head>
+<body>
+<div class="page">
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">Part<b>Pilot</b></a>
+    <a href="bom-upload.html" class="nav-back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+      Back
+    </a>
+  </nav>
+
+  <div class="tabs">
+    <a href="index.html" class="tab">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Search
+    </a>
+    <a href="bom-upload.html" class="tab active">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      BOM Upload
+    </a>
+  </div>
+
+  <div class="px">
+    <div class="summary anim">
+      <div class="sum-card">
+        <div class="num blue" id="totalParts">-</div>
+        <div class="lbl">Total Parts</div>
+      </div>
+      <div class="sum-card">
+        <div class="num red" id="atRisk">-</div>
+        <div class="lbl">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+          At Risk
+        </div>
+      </div>
+      <div class="sum-card">
+        <div class="num green" id="altsReady">-</div>
+        <div class="lbl">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Alternates Ready
+        </div>
+      </div>
+    </div>
+
+    <div class="tbl-wrap anim anim-d1">
+      <table class="bom-tbl" id="bomTable">
+        <thead>
+          <tr>
+            <th>Part Number</th>
+            <th style="text-align:center">Qty</th>
+            <th>Status</th>
+            <th>Stock</th>
+            <th class="risk-bar-cell">Supply Risk</th>
+            <th style="text-align:center">Alt.</th>
+          </tr>
+        </thead>
+        <tbody id="bomBody">
+          <tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-3);">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="actions anim anim-d2">
+      <button class="btn-secondary" id="downloadBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download Report
+      </button>
+      <button class="btn-secondary" onclick="window.location.href='bom-upload.html'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        Upload New BOM
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const reportId = params.get('id') || params.get('demo');
+
+  if (reportId) {
+    loadBOMReport(reportId);
+  }
+
+  document.getElementById('downloadBtn').addEventListener('click', () => {
+    if (reportId) {
+      downloadReport(reportId, 'csv');
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PartPilot &mdash; BOM Upload</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .upload-zone {
+      border: 2px dashed var(--border-2); border-radius: var(--r-lg);
+      padding: 48px 24px; text-align: center; background: var(--bg-1);
+      cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden; margin-top: 20px;
+    }
+    .upload-zone:hover, .upload-zone.dragover { border-color: var(--blue); background: rgba(77,142,247,0.03); }
+    .uz-icon {
+      width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 14px;
+      background: var(--blue-dim); display: flex; align-items: center; justify-content: center; color: var(--blue);
+    }
+    .upload-zone h3 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+    .upload-zone .uz-sub { font-size: 14px; color: var(--text-2); margin-bottom: 20px; }
+    .uz-btn {
+      display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px;
+      font-size: 14px; font-weight: 600; background: var(--bg-2); border: 1.5px solid var(--border-2);
+      border-radius: var(--r-sm); color: var(--text-0); font-family: var(--font-body); cursor: pointer; transition: all 0.2s;
+    }
+    .uz-btn:hover { border-color: var(--blue); background: var(--bg-3); }
+    .demo-link { display: block; margin-top: 16px; font-size: 14px; color: var(--blue); font-weight: 600; }
+    .demo-link:hover { text-decoration: underline; }
+    #fileInput { display: none; }
+    .file-selected { display: none; margin-top: 20px; padding: 16px; background: var(--bg-1); border: 1px solid var(--border-1); border-radius: var(--r); }
+    .file-selected.visible { display: block; }
+    .file-info { display: flex; align-items: center; gap: 12px; }
+    .file-icon { width: 40px; height: 40px; border-radius: 8px; background: var(--green-dim); color: var(--green); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .file-name { font-size: 15px; font-weight: 600; }
+    .file-size { font-size: 13px; color: var(--text-3); }
+    .file-remove { margin-left: auto; background: none; border: none; color: var(--text-3); cursor: pointer; padding: 4px; }
+    .file-remove:hover { color: var(--red); }
+    .filter-card { background: var(--bg-1); border: 1px solid var(--border-1); border-radius: var(--r); padding: 16px; margin-top: 10px; }
+    .filter-card label { display: block; font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+    .filter-card .fdesc { font-size: 13px; color: var(--text-3); margin-bottom: 12px; }
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; }
+    .toggle-row .fdesc { margin-bottom: 0; }
+    .loading-state { display: none; text-align: center; padding: 64px 24px; }
+    .loading-state.visible { display: block; }
+    .spinner { width: 40px; height: 40px; border: 3px solid var(--border-1); border-top-color: var(--blue); border-radius: 50%; margin: 0 auto 16px; animation: spin 0.7s linear infinite; }
+    .loading-state p { font-size: 15px; color: var(--text-2); }
+    .loading-state .ls-sub { font-size: 13px; color: var(--text-3); margin-top: 4px; }
+    .info-card { margin-top: 24px; padding: 16px; background: var(--green-dim); border: 1px solid var(--green-border); border-radius: var(--r); }
+    .info-card p { font-size: 14px; color: var(--text-2); line-height: 1.6; }
+    .info-card strong { color: var(--green); }
+    .err-msg { display: none; margin-top: 12px; padding: 12px; background: var(--red-dim); border: 1px solid var(--red-border); border-radius: var(--r-sm); color: var(--red); font-size: 14px; }
+    .err-msg.visible { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (min-width: 768px) {
+      .upload-zone { padding: 64px 32px; }
+      .bom-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+    }
+    @media (min-width: 1024px) { .upload-zone { padding: 80px 40px; } .bom-layout { gap: 40px; } }
+  </style>
+</head>
+<body>
+<div class="page">
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">Part<b>Pilot</b></a>
+    <div class="nav-right">
+      <button class="nav-btn" id="themeBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <div class="tabs">
+    <a href="index.html" class="tab">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Search
+    </a>
+    <a href="bom-upload.html" class="tab active">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      BOM Upload
+    </a>
+  </div>
+
+  <div class="px">
+    <div class="loading-state" id="loadingState">
+      <div class="spinner"></div>
+      <p>Analyzing your BOM...</p>
+      <p class="ls-sub">Checking lifecycle, stock, supply risk &amp; alternates</p>
+    </div>
+    <div class="err-msg" id="errMsg"></div>
+
+    <div class="bom-layout" id="bomContent">
+      <div class="bom-left">
+        <div class="upload-zone anim" id="dropZone">
+          <div class="uz-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+          </div>
+          <h3>Upload your BOM</h3>
+          <p class="uz-sub">CSV or Excel file with part numbers</p>
+          <button class="uz-btn" id="selectFileBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Select File
+          </button>
+          <a href="#" class="demo-link" id="demoLink">or try with demo BOM</a>
+          <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" />
+        </div>
+        <div class="file-selected" id="fileSelected">
+          <div class="file-info">
+            <div class="file-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div>
+              <div class="file-name" id="fileName"></div>
+              <div class="file-size" id="fileSize"></div>
+            </div>
+            <button class="file-remove" id="fileRemove">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <button class="btn-primary full mt" id="analyzeBtn">Analyze BOM &rarr;</button>
+        </div>
+      </div>
+
+      <div class="bom-right">
+        <div class="filters-section anim anim-d1">
+          <div class="stitle">Optimization Filters</div>
+          <div class="filter-card">
+            <div class="toggle-row">
+              <div>
+                <label>JLCPCB Parts Only</label>
+                <div class="fdesc">Only show alternates stocked in JLCPCB's parts library</div>
+              </div>
+              <button class="toggle" id="jlcpcbToggle"></button>
+            </div>
+          </div>
+          <div class="filter-card">
+            <label>Package Type</label>
+            <div class="fdesc">Filter alternates by preferred packages</div>
+            <div class="chips" id="packageChips">
+              <button class="chip" data-val="smd">SMD</button>
+              <button class="chip" data-val="tht">Through Hole</button>
+              <button class="chip" data-val="qfn">QFN</button>
+              <button class="chip" data-val="soic">SOIC</button>
+              <button class="chip" data-val="sop">SOP</button>
+              <button class="chip" data-val="bga">BGA</button>
+              <button class="chip" data-val="dip">DIP</button>
+              <button class="chip" data-val="tssop">TSSOP</button>
+            </div>
+          </div>
+        </div>
+        <div class="info-card anim anim-d2">
+          <p><strong>Design with confidence.</strong> Your BOM report will include a Supply Risk Score for every part &mdash; not just today's stock, but how vulnerable each component is to future supply disruptions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script>
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const selectBtn = document.getElementById('selectFileBtn');
+  const demoLink = document.getElementById('demoLink');
+  const fileSelected = document.getElementById('fileSelected');
+  const fileNameEl = document.getElementById('fileName');
+  const fileSizeEl = document.getElementById('fileSize');
+  const fileRemove = document.getElementById('fileRemove');
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  const loadingState = document.getElementById('loadingState');
+  const bomContent = document.getElementById('bomContent');
+  const jlcpcbToggle = document.getElementById('jlcpcbToggle');
+  const errMsg = document.getElementById('errMsg');
+
+  let selectedFile = null;
+
+  selectBtn.addEventListener('click', e => { e.stopPropagation(); fileInput.click(); });
+  dropZone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', e => { if (e.target.files.length) showFile(e.target.files[0]); });
+
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('dragover');
+    if (e.dataTransfer.files.length) showFile(e.dataTransfer.files[0]);
+  });
+
+  function showFile(file) {
+    selectedFile = file;
+    fileNameEl.textContent = file.name;
+    fileSizeEl.textContent = formatSize(file.size);
+    dropZone.style.display = 'none';
+    fileSelected.classList.add('visible');
+    errMsg.classList.remove('visible');
+  }
+
+  fileRemove.addEventListener('click', () => {
+    selectedFile = null; fileInput.value = '';
+    fileSelected.classList.remove('visible');
+    dropZone.style.display = '';
+  });
+
+  analyzeBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+    bomContent.style.display = 'none';
+    loadingState.classList.add('visible');
+    errMsg.classList.remove('visible');
+
+    try {
+      const reportId = await uploadBOM(
+        selectedFile,
+        jlcpcbToggle.classList.contains('on'),
+        getSelectedPackages()
+      );
+      window.location.href = `bom-report.html?id=${reportId}`;
+    } catch (err) {
+      console.error('Upload failed:', err);
+      loadingState.classList.remove('visible');
+      bomContent.style.display = '';
+      errMsg.textContent = 'Upload failed: ' + err.message;
+      errMsg.classList.add('visible');
+    }
+  });
+
+  demoLink.addEventListener('click', async (e) => {
+    e.preventDefault(); e.stopPropagation();
+    bomContent.style.display = 'none';
+    loadingState.classList.add('visible');
+
+    try {
+      const reportId = await loadDemoBOM();
+      window.location.href = `bom-report.html?id=${reportId}`;
+    } catch (err) {
+      console.error('Demo failed:', err);
+      loadingState.classList.remove('visible');
+      bomContent.style.display = '';
+      errMsg.textContent = 'Demo load failed: ' + err.message;
+      errMsg.classList.add('visible');
+    }
+  });
+
+  jlcpcbToggle.addEventListener('click', () => jlcpcbToggle.classList.toggle('on'));
+  document.querySelectorAll('#packageChips .chip').forEach(c => c.addEventListener('click', () => c.classList.toggle('on')));
+
+  function getSelectedPackages() {
+    return [...document.querySelectorAll('#packageChips .chip.on')].map(c => c.dataset.val);
+  }
+  function formatSize(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+    return (b / 1048576).toFixed(1) + ' MB';
+  }
+</script>
+</body>
+</html>
