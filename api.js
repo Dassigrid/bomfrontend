@@ -13,8 +13,14 @@
 const API_BASE = localStorage.getItem('pp_api_base') || 'http://localhost:3000';
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
+// Production:  localStorage.setItem('pp_token', supabaseSession.access_token)
+// Testing:     localStorage.setItem('pp_api_key', 'pp_internal_your_secret')
 function getAuthToken() {
   return localStorage.getItem('pp_token');
+}
+
+function _getInternalKey() {
+  return localStorage.getItem('pp_api_key');
 }
 
 // ─── Theme (runs on every page that loads api.js) ────────────────────────────
@@ -47,14 +53,18 @@ function _buildError(data, status) {
   return err;
 }
 
+function _authHeaders() {
+  var token = getAuthToken();
+  var key   = _getInternalKey();
+  if (token) return { 'Authorization': 'Bearer ' + token };
+  if (key)   return { 'X-API-Key': key };
+  return {};
+}
+
 async function _apiPost(path, body) {
-  const token = getAuthToken();
   const res = await fetch(API_BASE + path, {
     method:  'POST',
-    headers: Object.assign(
-      { 'Content-Type': 'application/json' },
-      token ? { 'Authorization': 'Bearer ' + token } : {}
-    ),
+    headers: Object.assign({ 'Content-Type': 'application/json' }, _authHeaders()),
     body: JSON.stringify(body)
   });
 
@@ -65,11 +75,10 @@ async function _apiPost(path, body) {
 }
 
 async function _apiPostMultipart(path, formData) {
-  const token = getAuthToken();
   const res = await fetch(API_BASE + path, {
     method:  'POST',
     // Do NOT set Content-Type — browser sets it with the correct boundary
-    headers: token ? { 'Authorization': 'Bearer ' + token } : {},
+    headers: _authHeaders(),
     body:    formData
   });
 
@@ -442,13 +451,9 @@ async function downloadReport(reportId) {
     });
 
   try {
-    var token = getAuthToken();
     var res = await fetch(API_BASE + '/api/bom/report', {
       method: 'POST',
-      headers: Object.assign(
-        { 'Content-Type': 'application/json' },
-        token ? { 'Authorization': 'Bearer ' + token } : {}
-      ),
+      headers: Object.assign({ 'Content-Type': 'application/json' }, _authHeaders()),
       body: JSON.stringify({
         data: {
           requestId:   reportId,
