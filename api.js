@@ -10,7 +10,7 @@
 //
 // ================================================================
 
-const API_BASE = localStorage.getItem('pp_api_base') || 'http://localhost:3000';
+const API_BASE = localStorage.getItem('pp_api_base') || 'https://current-karlen-partpilot-f936e532.koyeb.app';
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 // Production:  localStorage.setItem('pp_token', supabaseSession.access_token)
